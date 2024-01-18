@@ -12,7 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"github.com/succinctlabs/gnark-plonky2-verifier/goldilocks"
 	"github.com/succinctlabs/gnark-plonky2-verifier/types"
 	"github.com/succinctlabs/gnark-plonky2-verifier/variables"
 	"github.com/succinctlabs/gnark-plonky2-verifier/verifier"
@@ -21,7 +20,7 @@ import (
 	"time"
 )
 
-// proveCmd represents the verify command
+// proveCmd represents the proof command
 var proveCmd = &cobra.Command{
 	Use:   "prove",
 	Short: "runs a proof generation in gnark, and verify it, writing to json file input and hex bytes proof",
@@ -32,10 +31,10 @@ func prove(cmd *cobra.Command, args []string) {
 	path := fBaseDir + "/build"
 
 	verifierOnlyCircuitData := variables.DeserializeVerifierOnlyCircuitData(
-		types.ReadVerifierOnlyCircuitData(path + "/verifier_only_circuit_data.json"),
+		types.ReadVerifierOnlyCircuitData(fBaseDir + "/verifier_only_circuit_data.json"),
 	)
-	proofWithPis := types.ReadProofWithPublicInputs(path + "/proof_with_public_inputs.json")
-	proofWithPisVariable := variables.DeserializeProofWithPublicInputs(proofWithPis)
+	proofWithPis := types.ReadProofWithPublicInputs(fBaseDir + "/proof_with_public_inputs.json")
+	proofWithPisVariable, pis := variables.DeserializeProofWithPublicInputs(proofWithPis)
 	assignment := &verifier.VerifierCircuit{
 		Proof:        proofWithPisVariable.Proof,
 		VerifierData: verifierOnlyCircuitData,
@@ -45,70 +44,34 @@ func prove(cmd *cobra.Command, args []string) {
 		r1cs, pk, err := verifier.LoadPlonkProverData(path)
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
-			start := time.Now()
-
-			witness, err := frontend.NewWitness(assignment, ecc.BN254.ScalarField())
-			if err != nil {
-				fmt.Printf("failed to generate witness: %w", err)
-			}
-			elapsed := time.Since(start)
-			log.Debug().Msg("Successfully generated witness, time: " + elapsed.String())
-
-			log.Debug().Msg("Creating proof")
-			start = time.Now()
-			proof, err := plonk.Prove(r1cs, pk, witness)
-			if err != nil {
-				fmt.Printf("failed to create proof: %w", err)
-			}
-			elapsed = time.Since(start)
-			log.Info().Msg("Successfully created proof, time: " + elapsed.String())
-			_proof := proof.(*plonk_bn254.Proof)
-			log.Info().Msg("Saving proof to proof.json")
-			jsonProofWithWitness, err := json.Marshal(struct {
-				PublicInputs []goldilocks.Variable `json:"inputs"`
-				Proof        hexutil.Bytes         `json:"proof"`
-			}{
-				PublicInputs: proofWithPisVariable.PublicInputs,
-				Proof:        _proof.MarshalSolidity(),
-			})
-			if err != nil {
-				fmt.Printf("failed to marshal proof with witness: %w", err)
-			}
-			proofFile, err := os.Create("proof_with_witness.json")
-			if err != nil {
-				fmt.Printf("failed to create proof_with_witness file: %w", err)
-			}
-			_, err = proofFile.Write(jsonProofWithWitness)
-			if err != nil {
-				fmt.Printf("failed to write proof_with_witness file: %w", err)
-			}
-			proofFile.Close()
-			log.Info().Msg("Successfully saved proof_with_witness")
 		}
-	} else if system == "groth16" {
-		r1cs, pk, err := verifier.LoadGroth16ProverData(path)
-		if err != nil {
-			fmt.Printf("error: %s\n", err.Error())
-		}
+		fmt.Printf("error: %s\n", err.Error())
+		start := time.Now()
+
 		witness, err := frontend.NewWitness(assignment, ecc.BN254.ScalarField())
-		proof, _ := groth16.Prove(r1cs, pk, witness)
-
-		const fpSize = 4 * 8
-		buf := new(bytes.Buffer)
-		proof.WriteRawTo(buf)
-		proofBytes := buf.Bytes()
-
-		proofs := make([]string, 8)
-		// Print out the proof
-		for i := 0; i < 8; i++ {
-			proofs[i] = new(big.Int).SetBytes(proofBytes[fpSize*0 : fpSize*1]).String()
+		if err != nil {
+			fmt.Printf("failed to generate witness: %w", err)
 		}
+		elapsed := time.Since(start)
+		log.Info().Msg("Successfully generated witness, time: " + elapsed.String())
+
+		log.Info().Msg("Creating proof")
+		start = time.Now()
+		proof, err := plonk.Prove(r1cs, pk, witness)
+		if err != nil {
+			fmt.Printf("failed to create proof: %w", err)
+		}
+		elapsed = time.Since(start)
+		log.Info().Msg("Successfully created proof, time: " + elapsed.String())
+		_proof := proof.(*plonk_bn254.Proof)
+		log.Info().Msg("Saving proof to proof.json")
+
 		jsonProofWithWitness, err := json.Marshal(struct {
-			PublicInputs []goldilocks.Variable `json:"inputs"`
-			Proof        []string              `json:"proof"`
+			PublicInputs []uint64      `json:"inputs"`
+			Proof        hexutil.Bytes `json:"proof"`
 		}{
-			PublicInputs: proofWithPisVariable.PublicInputs,
-			Proof:        proofs,
+			PublicInputs: pis,
+			Proof:        _proof.MarshalSolidity(),
 		})
 		if err != nil {
 			fmt.Printf("failed to marshal proof with witness: %w", err)
@@ -123,6 +86,50 @@ func prove(cmd *cobra.Command, args []string) {
 		}
 		proofFile.Close()
 		log.Info().Msg("Successfully saved proof_with_witness")
+	} else if system == "groth16" {
+		r1cs, pk, err := verifier.LoadGroth16ProverData(path)
+		if err != nil {
+			fmt.Printf("error: %s\n", err.Error())
+		}
+		witness, err := frontend.NewWitness(assignment, ecc.BN254.ScalarField())
+		if err != nil {
+			fmt.Printf("failed to generate witness: %w", err)
+		}
+		start := time.Now()
+		proof, _ := groth16.Prove(r1cs, pk, witness)
+		elapsed := time.Since(start)
+		log.Info().Msg("Successfully created proof, time: " + elapsed.String())
+
+		const fpSize = 4 * 8
+		buf := new(bytes.Buffer)
+		proof.WriteRawTo(buf)
+		proofBytes := buf.Bytes()
+
+		proofs := make([]string, 8)
+		// Print out the proof
+		for i := 0; i < 8; i++ {
+			proofs[i] = new(big.Int).SetBytes(proofBytes[fpSize*0 : fpSize*1]).String()
+		}
+		jsonProofWithWitness, err := json.Marshal(struct {
+			PublicInputs []uint64 `json:"inputs"`
+			Proof        []string `json:"proof"`
+		}{
+			PublicInputs: pis,
+			Proof:        proofs,
+		})
+		if err != nil {
+			fmt.Printf("failed to marshal proof with witness: %w", err)
+		}
+		proofFile, err := os.Create("proof_with_witness.json")
+		if err != nil {
+			fmt.Printf("failed to create proof_with_witness file: %w", err)
+		}
+		_, err = proofFile.Write(jsonProofWithWitness)
+		if err != nil {
+			fmt.Printf("failed to write proof_with_witness file: %w", err)
+		}
+		proofFile.Close()
+		log.Debug().Msg("Successfully saved proof_with_witness")
 
 	}
 }

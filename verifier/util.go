@@ -41,7 +41,7 @@ func CompileVerifierCircuit(circuitPath string, system string) error {
 	verifierOnlyCircuitData := variables.DeserializeVerifierOnlyCircuitData(
 		types.ReadVerifierOnlyCircuitData(circuitPath + "/verifier_only_circuit_data.json"),
 	)
-	proofWithPis := variables.DeserializeProofWithPublicInputs(
+	proofWithPis, _ := variables.DeserializeProofWithPublicInputs(
 		types.ReadProofWithPublicInputs(circuitPath + "/proof_with_public_inputs.json"),
 	)
 	commonCircuitData := types.ReadCommonCircuitData(circuitPath + "/common_circuit_data.json")

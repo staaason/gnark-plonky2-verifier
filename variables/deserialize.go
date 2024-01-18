@@ -111,7 +111,7 @@ func DeserializeFriProof(openingProofRaw struct {
 	return openingProof
 }
 
-func DeserializeProofWithPublicInputs(raw types.ProofWithPublicInputsRaw) ProofWithPublicInputs {
+func DeserializeProofWithPublicInputs(raw types.ProofWithPublicInputsRaw) (ProofWithPublicInputs, []uint64) {
 	var proofWithPis ProofWithPublicInputs
 	proofWithPis.Proof.WiresCap = DeserializeMerkleCap(raw.Proof.WiresCap)
 	proofWithPis.Proof.PlonkZsPartialProductsCap = DeserializeMerkleCap(raw.Proof.PlonkZsPartialProductsCap)
@@ -143,7 +143,7 @@ func DeserializeProofWithPublicInputs(raw types.ProofWithPublicInputsRaw) ProofW
 	}(raw.Proof.OpeningProof))
 	proofWithPis.PublicInputs = gl.Uint64ArrayToVariableArray(raw.PublicInputs)
 
-	return proofWithPis
+	return proofWithPis, raw.PublicInputs
 }
 
 func DeserializeVerifierOnlyCircuitData(raw types.VerifierOnlyCircuitDataRaw) VerifierOnlyCircuitData {
