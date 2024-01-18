@@ -45,7 +45,6 @@ func prove(cmd *cobra.Command, args []string) {
 		if err != nil {
 			fmt.Printf("error: %s\n", err.Error())
 		}
-		fmt.Printf("error: %s\n", err.Error())
 		start := time.Now()
 
 		witness, err := frontend.NewWitness(assignment, ecc.BN254.ScalarField())
