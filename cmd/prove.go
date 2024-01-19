@@ -64,13 +64,14 @@ func prove(cmd *cobra.Command, args []string) {
 		log.Info().Msg("Successfully created proof, time: " + elapsed.String())
 		_proof := proof.(*plonk_bn254.Proof)
 		log.Info().Msg("Saving proof to proof.json")
-
+		serializedProof := _proof.MarshalSolidity()
+		log.Printf("Proof len: %d", len(serializedProof))
 		jsonProofWithWitness, err := json.Marshal(struct {
 			PublicInputs []uint64      `json:"inputs"`
 			Proof        hexutil.Bytes `json:"proof"`
 		}{
 			PublicInputs: pis,
-			Proof:        _proof.MarshalSolidity(),
+			Proof:        serializedProof,
 		})
 		if err != nil {
 			fmt.Printf("failed to marshal proof with witness: %w", err)
@@ -107,7 +108,7 @@ func prove(cmd *cobra.Command, args []string) {
 		proofs := make([]string, 8)
 		// Print out the proof
 		for i := 0; i < 8; i++ {
-			proofs[i] = new(big.Int).SetBytes(proofBytes[fpSize*0 : fpSize*1]).String()
+			proofs[i] = new(big.Int).SetBytes(proofBytes[i*fpSize : (i+1)*fpSize]).String()
 		}
 		jsonProofWithWitness, err := json.Marshal(struct {
 			PublicInputs []uint64 `json:"inputs"`
