@@ -130,7 +130,6 @@ func prove(cmd *cobra.Command, args []string) {
 		}
 		proofFile.Close()
 		log.Debug().Msg("Successfully saved proof_with_witness")
-
 	}
 }
 
