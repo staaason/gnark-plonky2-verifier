@@ -30,8 +30,6 @@ func runBenchmarkPatricia(build_path string, proofSystem string) {
 
 	excludeDirs := map[string]struct{}{
 		"decode_block":           {},
-		"receipt_6_circuit_data": {},
-		"state_circuit_data":     {},
 		"step":                   {},
 		"test_circuit":           {},
 	}
@@ -92,7 +90,9 @@ func runBenchmarkPatricia(build_path string, proofSystem string) {
 					if err != nil {
 						fmt.Printf("failed to marshal proof with witness: %w", err)
 					}
-					proofFile, err := os.Create("proof_with_witness.json")
+					proofName := "proof_with_witness_plonk_.json"
+					filePath := filepath.Join(proofName, dirName)
+					proofFile, err := os.Create(filePath)
 					if err != nil {
 						fmt.Printf("failed to create proof_with_witness file: %w", err)
 					}
@@ -157,7 +157,9 @@ func runBenchmarkPatricia(build_path string, proofSystem string) {
 					if err != nil {
 						fmt.Printf("failed to marshal proof with witness: %w", err)
 					}
-					proofFile, err := os.Create("proof_with_witness.json")
+					proofName := "proof_with_witness_gnark_.json"
+					filePath := filepath.Join(proofName, dirName)
+					proofFile, err := os.Create(filePath)
 					if err != nil {
 						fmt.Printf("failed to create proof_with_witness file: %w", err)
 					}
@@ -181,7 +183,7 @@ func runBenchmarkPatricia(build_path string, proofSystem string) {
 
 func main() {
 	plonky2Circuit := flag.String("build-dir", "build", "patricia plonky2 build to benchmark")
-	proofSystem := flag.String("proof-system", "plonk", "proof system to benchmark")
+	proofSystem := flag.String("proof-system", "groth16", "proof system to benchmark")
 	flag.Parse()
 	fmt.Printf("Running benchmark for %s circuit with proof system %s\n", *plonky2Circuit, *proofSystem)
 
