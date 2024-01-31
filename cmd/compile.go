@@ -25,5 +25,5 @@ func compile(cmd *cobra.Command, args []string) {
 
 func init() {
 	rootCmd.AddCommand(compileCmd)
-	compileCmd.Flags().StringVar(&system, "system", "plonk", "proof system for proving (groth16 or plonk)")
+	compileCmd.Flags().StringVar(&system, "system", "groth16", "proof system for proving (groth16 or plonk)")
 }

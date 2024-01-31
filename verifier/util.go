@@ -176,7 +176,7 @@ func SaveVerifierCircuitGroth(path string, r1cs constraint.ConstraintSystem, pk 
 	log.Info().Msg("Successfully saved verifying key, time: " + elapsed.String())
 
 	start = time.Now()
-	err = ExportPlonkVerifierSolidity(path, vk)
+	err = ExportGrothVerifierSolidity(path, vk)
 	elapsed = time.Since(start)
 	log.Info().Msg("Successfully saved solidity file, time: " + elapsed.String())
 	if err != nil {
@@ -209,6 +209,33 @@ func ExportPlonkVerifierSolidity(path string, vk plonk.VerifyingKey) error {
 	content := buf.String()
 
 	contractFile, err := os.Create(path + "/PlonkVerifier.sol")
+	if err != nil {
+		return err
+	}
+	w := bufio.NewWriter(contractFile)
+	// write the new content to the writer
+	_, err = w.Write([]byte(content))
+	if err != nil {
+		return err
+	}
+
+	contractFile.Close()
+	return err
+}
+
+func ExportGrothVerifierSolidity(path string, vk groth16.VerifyingKey) error {
+	log := logger.Logger()
+	// Create a new buffer and export the VerifyingKey into it as a Solidity contract and
+	// convert the buffer content to a string for further manipulation.
+	buf := new(bytes.Buffer)
+	err := vk.ExportSolidity(buf)
+	if err != nil {
+		log.Err(err).Msg("failed to export verifying key to solidity")
+		return err
+	}
+	content := buf.String()
+
+	contractFile, err := os.Create(path + "/GrothVerifier.sol")
 	if err != nil {
 		return err
 	}
