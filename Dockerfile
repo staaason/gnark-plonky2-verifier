@@ -13,7 +13,8 @@ RUN go mod download
 # https://docs.docker.com/engine/reference/builder/#copy
 COPY . ./
 
-RUN USE_BIT_DECOMPOSITION_RANGE_CHECK=true go run compile_build.go
+ENV USE_BIT_DECOMPOSITION_RANGE_CHECK=true
+RUN go run compile_build.go
 
 # Optional:
 # To bind to a TCP port, runtime parameters must be supplied to the docker command.
@@ -23,4 +24,5 @@ RUN USE_BIT_DECOMPOSITION_RANGE_CHECK=true go run compile_build.go
 EXPOSE 8010
 
 # Run
-CMD ["USE_BIT_DECOMPOSITION_RANGE_CHECK=true go run run_api.go"]
+ENV USE_BIT_DECOMPOSITION_RANGE_CHECK=true
+CMD ["go", "run", "run_api.go"]
