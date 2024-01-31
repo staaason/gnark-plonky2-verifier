@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	circuitPath := flag.String("plonky2-circuit", "testdata/step", "plonky2 circuit to benchmark")
+	circuitPath := flag.String("plonky2-circuit", "testdata/test_circuit", "plonky2 circuit to benchmark")
 	flag.Parse()
 	verifierOnlyCircuitData := variables.DeserializeVerifierOnlyCircuitData(
 		types.ReadVerifierOnlyCircuitData(*circuitPath + "/verifier_only_circuit_data.json"),
