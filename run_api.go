@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/consensys/gnark-crypto/ecc"
 	"github.com/consensys/gnark/backend/groth16"
@@ -74,19 +73,10 @@ func generateProof(r1cs constraint.ConstraintSystem, pk groth16.ProvingKey, vk g
 			proofs[i] = new(big.Int).SetBytes(proofBytes[i*fpSize : (i+1)*fpSize])
 		}
 
-		jsonProofWithWitness, err := json.Marshal(struct {
-			PublicInputs []uint64   `json:"inputs"`
-			Proof        []*big.Int `json:"proof"`
-		}{
-			PublicInputs: pis,
-			Proof:        proofs,
+		c.JSON(http.StatusOK, gin.H{
+			"inputs": pis,
+			"proof":  proofs,
 		})
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to marshal JSON: %v", err)})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"proofWithWitness": jsonProofWithWitness})
 	}
 }
 
