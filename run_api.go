@@ -35,9 +35,10 @@ func generateProof(r1cs constraint.ConstraintSystem, pk groth16.ProvingKey, vk g
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
-		proofWithPisVariable, pis := variables.DeserializeProofWithPublicInputs(proofReq.ProofWithPis)
-		verifierOnlyCircuitData := variables.DeserializeVerifierOnlyCircuitData(proofReq.VerifierCircuitData)
+		proofWithPisSerialized := types.ReadProofWithPublicInputsFromRequest(proofReq.ProofWithPis)
+		verifierSerialized := types.ReadVerifierOnlyCircuitDataFromRequest(proofReq.VerifierCircuitData)
+		proofWithPisVariable, pis := variables.DeserializeProofWithPublicInputs(proofWithPisSerialized)
+		verifierOnlyCircuitData := variables.DeserializeVerifierOnlyCircuitData(verifierSerialized)
 		assignment := &verifier.VerifierCircuit{
 			Proof:        proofWithPisVariable.Proof,
 			VerifierData: verifierOnlyCircuitData,
@@ -90,9 +91,9 @@ func generateProof(r1cs constraint.ConstraintSystem, pk groth16.ProvingKey, vk g
 }
 
 type ProofRequest struct {
-	ID                  string                           `json:"id"`
-	ProofWithPis        types.ProofWithPublicInputsRaw   `json:"proofWithPis"`
-	VerifierCircuitData types.VerifierOnlyCircuitDataRaw `json:"verifierData"`
+	ID                  string `json:"id"`
+	ProofWithPis        []byte `json:"proofWithPis"`
+	VerifierCircuitData []byte `json:"verifierData"`
 }
 
 func main() {
