@@ -103,5 +103,5 @@ func main() {
 	router := gin.Default()
 	router.GET("/health", healthCheck)
 	router.POST("/proof", generateProof(r1cs, pk, vk))
-	router.Run("localhost:8010")
+	router.Run("0.0.0.0:8010")
 }
