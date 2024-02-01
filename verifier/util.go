@@ -176,7 +176,7 @@ func SaveVerifierCircuitGroth(path string, r1cs constraint.ConstraintSystem, pk 
 	log.Info().Msg("Successfully saved verifying key, time: " + elapsed.String())
 
 	start = time.Now()
-	err = ExportGrothVerifierSolidity(path, vk)
+	err = ExportPlonkVerifierSolidity(path, vk)
 	elapsed = time.Since(start)
 	log.Info().Msg("Successfully saved solidity file, time: " + elapsed.String())
 	if err != nil {
