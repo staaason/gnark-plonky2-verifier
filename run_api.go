@@ -67,10 +67,10 @@ func generateProof(r1cs constraint.ConstraintSystem, pk groth16.ProvingKey, vk g
 		proof.WriteRawTo(buf)
 		proofBytes := buf.Bytes()
 
-		proofs := make([]*big.Int, 8)
+		proofs := make([]string, 8)
 
 		for i := 0; i < 8; i++ {
-			proofs[i] = new(big.Int).SetBytes(proofBytes[i*fpSize : (i+1)*fpSize])
+			proofs[i] = new(big.Int).SetBytes(proofBytes[i*fpSize : (i+1)*fpSize]).String()
 		}
 
 		c.JSON(http.StatusOK, gin.H{
