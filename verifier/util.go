@@ -50,7 +50,7 @@ func (c *CircuitFixed) Define(api frontend.API) error {
 		publicInputLimb := frontend.Variable(0)
 		slicePub := publicInputs[j*4 : (j+1)*4]
 		for i := 0; i < 4; i++ {
-			pubU32 := slicePub[i]
+			pubU32 := slicePub[i].Limb
 			pubByte := frontend.Variable(new(big.Int).Lsh(big.NewInt(1), uint(32*i)))
 			publicInputLimb = api.Add(publicInputLimb, api.Mul(pubByte, pubU32))
 		}
