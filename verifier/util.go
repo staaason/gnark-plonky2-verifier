@@ -30,6 +30,36 @@ type VerifierCircuit struct {
 	CommonCircuitData types.CommonCircuitData `gnark:"-"`
 }
 
+type CircuitFixed struct {
+	PublicInputs      [4]frontend.Variable `gnark:",public"`
+	VerifierData      variables.VerifierOnlyCircuitData
+	ProofWithPis      variables.ProofWithPublicInputs
+	CommonCircuitData types.CommonCircuitData `gnark:"-"`
+}
+
+func (c *CircuitFixed) Define(api frontend.API) error {
+	verifierChip := NewVerifierChip(api, c.CommonCircuitData)
+	verifierChip.Verify(c.ProofWithPis.Proof, c.ProofWithPis.PublicInputs, c.VerifierData)
+
+	publicInputs := c.ProofWithPis.PublicInputs
+
+	if len(publicInputs) != 16 {
+		return fmt.Errorf("expected 16 public inputs, got %d", len(publicInputs))
+	}
+	for j := 0; j < 4; j++ {
+		publicInputLimb := frontend.Variable(0)
+		slicePub := publicInputs[j*4 : (j+1)*4]
+		for i := 0; i < 4; i++ {
+			pubU32 := slicePub[i]
+			pubByte := frontend.Variable(new(big.Int).Lsh(big.NewInt(1), uint(32*i)))
+			publicInputLimb = api.Add(publicInputLimb, api.Mul(pubByte, pubU32))
+		}
+		api.AssertIsEqual(c.PublicInputs, publicInputLimb)
+	}
+
+	return nil
+}
+
 func (c *VerifierCircuit) Define(api frontend.API) error {
 	verifierChip := NewVerifierChip(api, c.CommonCircuitData)
 	verifierChip.Verify(c.Proof, c.PublicInputs, c.VerifierData)
@@ -176,7 +206,7 @@ func SaveVerifierCircuitGroth(path string, r1cs constraint.ConstraintSystem, pk 
 	log.Info().Msg("Successfully saved verifying key, time: " + elapsed.String())
 
 	start = time.Now()
-	err = ExportPlonkVerifierSolidity(path, vk)
+	err = ExportGrothVerifierSolidity(path, vk)
 	elapsed = time.Since(start)
 	log.Info().Msg("Successfully saved solidity file, time: " + elapsed.String())
 	if err != nil {

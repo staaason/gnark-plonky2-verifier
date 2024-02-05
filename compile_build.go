@@ -22,9 +22,10 @@ func main() {
 	)
 	commonCircuitData := types.ReadCommonCircuitData(*circuitPath + "/common_circuit_data.json")
 
-	circuit := verifier.VerifierCircuit{
-		Proof:             proofWithPis.Proof,
-		PublicInputs:      proofWithPis.PublicInputs,
+	circuit := verifier.CircuitFixed{
+		ProofWithPis: proofWithPis,
+		PublicInputs: [4]frontend.Variable{new(frontend.Variable), new(frontend.Variable),
+			new(frontend.Variable), new(frontend.Variable)},
 		VerifierData:      verifierOnlyCircuitData,
 		CommonCircuitData: commonCircuitData,
 	}
