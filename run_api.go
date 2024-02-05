@@ -38,10 +38,26 @@ func generateProof(r1cs constraint.ConstraintSystem, pk groth16.ProvingKey, vk g
 		verifierSerialized := types.ReadVerifierOnlyCircuitDataFromRequest(proofReq.VerifierCircuitData)
 		proofWithPisVariable, pis := variables.DeserializeProofWithPublicInputs(proofWithPisSerialized)
 		verifierOnlyCircuitData := variables.DeserializeVerifierOnlyCircuitData(verifierSerialized)
-		assignment := &verifier.VerifierCircuit{
-			Proof:        proofWithPisVariable.Proof,
+		var publicInputsConverted [4]frontend.Variable
+		var bigIntPis [4]string
+		for j := 0; j < 4; j++ {
+			limbs := make([]byte, 16)
+			slicePub := pis[j*4 : (j+1)*4]
+			for i := 0; i < 4; i++ {
+				offset := i * 4
+				limbs[offset] = byte((slicePub[i] >> 24) & 0xFF)
+				limbs[offset+1] = byte((slicePub[i] >> 16) & 0xFF)
+				limbs[offset+2] = byte((slicePub[i] >> 8) & 0xFF)
+				limbs[offset+3] = byte(slicePub[i] & 0xFF)
+			}
+			bigIntValue := new(big.Int).SetBytes(limbs)
+			bigIntPis[j] = bigIntValue.String()
+			publicInputsConverted[j] = frontend.Variable(bigIntValue)
+		}
+		assignment := &verifier.CircuitFixed{
+			ProofWithPis: proofWithPisVariable,
 			VerifierData: verifierOnlyCircuitData,
-			PublicInputs: proofWithPisVariable.PublicInputs,
+			PublicInputs: publicInputsConverted,
 		}
 
 		witness, err := frontend.NewWitness(assignment, ecc.BN254.ScalarField())
@@ -74,7 +90,7 @@ func generateProof(r1cs constraint.ConstraintSystem, pk groth16.ProvingKey, vk g
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"inputs": pis,
+			"inputs": bigIntPis,
 			"proof":  proofs,
 		})
 	}
