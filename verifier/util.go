@@ -54,7 +54,7 @@ func (c *CircuitFixed) Define(api frontend.API) error {
 			pubByte := frontend.Variable(new(big.Int).Lsh(big.NewInt(1), uint(32*i)))
 			publicInputLimb = api.Add(publicInputLimb, api.Mul(pubByte, pubU32))
 		}
-		api.AssertIsEqual(c.PublicInputs, publicInputLimb)
+		api.AssertIsEqual(c.PublicInputs[j], publicInputLimb)
 	}
 
 	return nil
