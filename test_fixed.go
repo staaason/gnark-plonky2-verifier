@@ -17,13 +17,6 @@ import (
 	"time"
 )
 
-func reverseBytesSlice(slice []byte) {
-	length := len(slice)
-	for i := 0; i < length/2; i++ {
-		slice[i], slice[length-i-1] = slice[length-i-1], slice[i]
-	}
-}
-
 func main() {
 	path := "api-build"
 	fBaseDir := flag.String("plonky2-circuit", "testdata/test_circuit", "plonky2 circuit to benchmark")
@@ -40,12 +33,11 @@ func main() {
 		slicePub := pis[j*4 : (j+1)*4]
 		for i := 0; i < 4; i++ {
 			offset := i * 4
-			limbs[offset] = byte(slicePub[i] & 0xFF)
-			limbs[offset+1] = byte((slicePub[i] >> 8) & 0xFF)
-			limbs[offset+2] = byte((slicePub[i] >> 16) & 0xFF)
-			limbs[offset+3] = byte((slicePub[i] >> 24) & 0xFF)
+			limbs[offset] = byte((slicePub[i] >> 24) & 0xFF)
+			limbs[offset+1] = byte((slicePub[i] >> 16) & 0xFF)
+			limbs[offset+2] = byte((slicePub[i] >> 8) & 0xFF)
+			limbs[offset+3] = byte(slicePub[i] & 0xFF)
 		}
-		reverseBytesSlice(limbs)
 		bigIntValue := new(big.Int).SetBytes(limbs)
 		bigIntPis[j] = bigIntValue.String()
 		publicInputsConverted[j] = frontend.Variable(bigIntValue)

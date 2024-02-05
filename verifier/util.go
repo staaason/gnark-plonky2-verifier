@@ -51,8 +51,8 @@ func (c *CircuitFixed) Define(api frontend.API) error {
 		slicePub := publicInputs[j*4 : (j+1)*4]
 		for i := 0; i < 4; i++ {
 			pubU32 := slicePub[i].Limb
-			pubByte := frontend.Variable(new(big.Int).Lsh(big.NewInt(1), uint(32*i)))
-			publicInputLimb = api.Add(publicInputLimb, api.Mul(pubByte, pubU32))
+			pubByte := frontend.Variable(new(big.Int).SetUint64(1 << 32))
+			publicInputLimb = api.Add(pubU32, api.Mul(pubByte, publicInputLimb))
 		}
 		api.AssertIsEqual(c.PublicInputs[j], publicInputLimb)
 	}
