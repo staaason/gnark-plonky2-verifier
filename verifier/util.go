@@ -30,6 +30,36 @@ type VerifierCircuit struct {
 	CommonCircuitData types.CommonCircuitData `gnark:"-"`
 }
 
+type CircuitFixed struct {
+	PublicInputs      [4]frontend.Variable `gnark:",public"`
+	VerifierData      variables.VerifierOnlyCircuitData
+	ProofWithPis      variables.ProofWithPublicInputs
+	CommonCircuitData types.CommonCircuitData `gnark:"-"`
+}
+
+func (c *CircuitFixed) Define(api frontend.API) error {
+	verifierChip := NewVerifierChip(api, c.CommonCircuitData)
+	verifierChip.Verify(c.ProofWithPis.Proof, c.ProofWithPis.PublicInputs, c.VerifierData)
+
+	publicInputs := c.ProofWithPis.PublicInputs
+
+	if len(publicInputs) != 16 {
+		return fmt.Errorf("expected 16 public inputs, got %d", len(publicInputs))
+	}
+	for j := 0; j < 4; j++ {
+		publicInputLimb := frontend.Variable(0)
+		slicePub := publicInputs[j*4 : (j+1)*4]
+		for i := 0; i < 4; i++ {
+			pubU32 := slicePub[i].Limb
+			pubByte := frontend.Variable(new(big.Int).SetUint64(1 << 32))
+			publicInputLimb = api.Add(pubU32, api.Mul(pubByte, publicInputLimb))
+		}
+		api.AssertIsEqual(c.PublicInputs[j], publicInputLimb)
+	}
+
+	return nil
+}
+
 func (c *VerifierCircuit) Define(api frontend.API) error {
 	verifierChip := NewVerifierChip(api, c.CommonCircuitData)
 	verifierChip.Verify(c.Proof, c.PublicInputs, c.VerifierData)
@@ -176,7 +206,7 @@ func SaveVerifierCircuitGroth(path string, r1cs constraint.ConstraintSystem, pk 
 	log.Info().Msg("Successfully saved verifying key, time: " + elapsed.String())
 
 	start = time.Now()
-	err = ExportPlonkVerifierSolidity(path, vk)
+	err = ExportGrothVerifierSolidity(path, vk)
 	elapsed = time.Since(start)
 	log.Info().Msg("Successfully saved solidity file, time: " + elapsed.String())
 	if err != nil {
@@ -209,6 +239,33 @@ func ExportPlonkVerifierSolidity(path string, vk plonk.VerifyingKey) error {
 	content := buf.String()
 
 	contractFile, err := os.Create(path + "/PlonkVerifier.sol")
+	if err != nil {
+		return err
+	}
+	w := bufio.NewWriter(contractFile)
+	// write the new content to the writer
+	_, err = w.Write([]byte(content))
+	if err != nil {
+		return err
+	}
+
+	contractFile.Close()
+	return err
+}
+
+func ExportGrothVerifierSolidity(path string, vk groth16.VerifyingKey) error {
+	log := logger.Logger()
+	// Create a new buffer and export the VerifyingKey into it as a Solidity contract and
+	// convert the buffer content to a string for further manipulation.
+	buf := new(bytes.Buffer)
+	err := vk.ExportSolidity(buf)
+	if err != nil {
+		log.Err(err).Msg("failed to export verifying key to solidity")
+		return err
+	}
+	content := buf.String()
+
+	contractFile, err := os.Create(path + "/GrothVerifier.sol")
 	if err != nil {
 		return err
 	}
