@@ -17,18 +17,16 @@ WORKDIR /app
 
 # Copy the content of the local directory to the working directory
 COPY . .
-
+RUN go mod download
+RUN go get github.com/ingonyama-zk/icicle/goicicle@v0.1.0
 ENV CGO_LD_FLAGS="-L/root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle/"
-RUN go mod download
+RUN cd /root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle/ && \
+    sh setup.sh
+
+
 ENV USE_BIT_DECOMPOSITION_RANGE_CHECK=true
 RUN go run main.go compile --dir testdata/test_circuit --system groth16
-
-# Optional:
-# To bind to a TCP port, runtime parameters must be supplied to the docker command.
-# But we can document in the Dockerfile what ports
-# the application is going to listen on by default.
-# https://docs.docker.com/engine/reference/builder/#expose
 
 
 # Run
