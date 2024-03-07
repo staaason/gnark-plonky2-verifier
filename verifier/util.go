@@ -12,7 +12,6 @@ import (
 	"github.com/consensys/gnark/frontend/cs/r1cs"
 	"github.com/consensys/gnark/frontend/cs/scs"
 	"github.com/consensys/gnark/logger"
-	"github.com/consensys/gnark/test"
 	gl "github.com/succinctlabs/gnark-plonky2-verifier/goldilocks"
 	"github.com/succinctlabs/gnark-plonky2-verifier/types"
 	"github.com/succinctlabs/gnark-plonky2-verifier/variables"
@@ -94,29 +93,29 @@ func CompileVerifierCircuit(circuitPath string, system string) error {
 	}
 	log.Info().Msg("Running circuit setup")
 	start := time.Now()
-	if system == "plonk" {
-		srs, err := test.NewKZGSRS(r1cs)
-		if err != nil {
-			panic(err)
-		}
-		pk, vk, err := plonk.Setup(r1cs, srs)
-		if err != nil {
-			return err
-		}
-		err = SaveVerifierCircuitPlonk(circuitPath+"/build", r1cs, pk, vk)
-		if err != nil {
-			return err
-		}
-	} else if system == "groth16" {
-		pk, vk, err := groth16.Setup(r1cs)
-		if err != nil {
-			return err
-		}
-		err = SaveVerifierCircuitGroth(circuitPath+"/build", r1cs, pk, vk)
-		if err != nil {
-			return err
-		}
+	//if system == "plonk" {
+	//	srs, err := test.NewKZGSRS(r1cs)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	pk, vk, err := plonk.Setup(r1cs, srs)
+	//	if err != nil {
+	//		return err
+	//	}
+	//	err = SaveVerifierCircuitPlonk(circuitPath+"/build", r1cs, pk, vk)
+	//	if err != nil {
+	//		return err
+	//	}
+	//} else if system == "groth16" {
+	pk, vk, err := groth16.Setup(r1cs)
+	if err != nil {
+		return err
 	}
+	err = SaveVerifierCircuitGroth(circuitPath+"/build", r1cs, pk, vk)
+	if err != nil {
+		return err
+	}
+	//}
 	elapsed := time.Since(start)
 	log.Info().Msg("Successfully ran circuit setup, time: " + elapsed.String())
 
