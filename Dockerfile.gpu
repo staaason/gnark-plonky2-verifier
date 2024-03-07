@@ -22,7 +22,7 @@ RUN go get github.com/ingonyama-zk/icicle/goicicle@v0.1.0
 ENV CGO_LD_FLAGS="-L/root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle/"
 RUN cd /root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle/ && \
-    sh setup.sh
+    make all
 
 
 ENV USE_BIT_DECOMPOSITION_RANGE_CHECK=true

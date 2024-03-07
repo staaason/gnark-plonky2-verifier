@@ -97,13 +97,20 @@ func prove(cmd *cobra.Command, args []string) {
 			fmt.Printf("failed to generate witness: %w", err)
 		}
 		start := time.Now()
-		proof, _ := groth16.Prove(r1cs, pk, witness, backend.WithIcicleAcceleration())
+		proof, err := groth16.Prove(r1cs, pk, witness, backend.WithIcicleAcceleration())
+		if err != nil {
+			fmt.Println("Error proving:", err)
+		}
 		elapsed := time.Since(start)
 		log.Info().Msg("Successfully created proof, time: " + elapsed.String())
 
 		const fpSize = 4 * 8
 		buf := new(bytes.Buffer)
-		proof.WriteRawTo(buf)
+		_, err = proof.WriteRawTo(buf)
+		if err != nil {
+			fmt.Printf("error writting proof: %s\n", err.Error())
+			return
+		}
 		proofBytes := buf.Bytes()
 
 		proofs := make([]string, 8)
