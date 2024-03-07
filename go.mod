@@ -2,12 +2,19 @@ module github.com/succinctlabs/gnark-plonky2-verifier
 
 go 1.19
 
-require github.com/spf13/cobra v1.7.0
+require (
+	github.com/consensys/gnark v0.9.2-0.20240305171350-22d2c33cf8ec
+	github.com/consensys/gnark-crypto v0.12.2-0.20240215234832-d72fcb379d3e
+	github.com/ethereum/go-ethereum v1.13.10
+	github.com/gin-gonic/gin v1.9.1
+	github.com/rs/zerolog v1.30.0
+	github.com/spf13/cobra v1.5.0
+)
 
 require (
-	github.com/consensys/gnark v0.9.1
-	github.com/consensys/gnark-crypto v0.12.2-0.20231013160410-1f65e75b6dfb
-	github.com/ethereum/go-ethereum v1.13.10
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/rogpeppe/go-internal v1.12.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 )
 
 require (
@@ -21,14 +28,14 @@ require (
 	github.com/fxamacker/cbor/v2 v2.5.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/gin-gonic/gin v1.9.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.17.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/pprof v0.0.0-20230817174616-7a8ec2ada47b // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
-	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/ingonyama-zk/icicle v0.0.0-20230928131117-97f0079e5c71 // indirect
+	github.com/ingonyama-zk/iciclegnark v0.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/leodido/go-urn v1.3.0 // indirect
@@ -39,8 +46,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rs/zerolog v1.30.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
@@ -56,3 +61,5 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
+
+replace github.com/ingonyama-zk/icicle v1.0.0 => github.com/ingonyama-zk/icicle v0.1.0

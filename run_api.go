@@ -11,8 +11,10 @@ import (
 	"github.com/succinctlabs/gnark-plonky2-verifier/types"
 	"github.com/succinctlabs/gnark-plonky2-verifier/variables"
 	"github.com/succinctlabs/gnark-plonky2-verifier/verifier"
+	"io/ioutil"
 	"math/big"
 	"net/http"
+	"path/filepath"
 )
 
 func healthCheck(c *gin.Context) {
@@ -22,6 +24,26 @@ func healthCheck(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+func readContract(folder, filename string) (string, error) {
+	filePath := filepath.Join(folder, filename)
+	content, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+	return string(content), nil
+}
+
+func getContractHandler(c *gin.Context) {
+	contractFolder := "api-build"
+	contractFile := "GrothVerifier.sol"
+	contractContent, err := readContract(contractFolder, contractFile)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.String(http.StatusOK, contractContent)
 }
 
 const fpSize = 4 * 8
@@ -96,6 +118,47 @@ func generateProof(r1cs constraint.ConstraintSystem, pk groth16.ProvingKey, vk g
 	}
 }
 
+func generateProofTemp() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var proofReq ProofRequest
+
+		if err := c.ShouldBindJSON(&proofReq); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		proofWithPisSerialized := types.ReadProofWithPublicInputsFromRequest(proofReq.ProofWithPis)
+		verifierSerialized := types.ReadVerifierOnlyCircuitDataFromRequest(proofReq.VerifierCircuitData)
+		proofWithPisVariable, pis := variables.DeserializeProofWithPublicInputs(proofWithPisSerialized)
+		verifierOnlyCircuitData := variables.DeserializeVerifierOnlyCircuitData(verifierSerialized)
+		var publicInputsConverted [4]frontend.Variable
+		var bigIntPis [4]string
+		for j := 0; j < 4; j++ {
+			limbs := make([]byte, 16)
+			slicePub := pis[j*4 : (j+1)*4]
+			for i := 0; i < 4; i++ {
+				offset := i * 4
+				limbs[offset] = byte((slicePub[i] >> 24) & 0xFF)
+				limbs[offset+1] = byte((slicePub[i] >> 16) & 0xFF)
+				limbs[offset+2] = byte((slicePub[i] >> 8) & 0xFF)
+				limbs[offset+3] = byte(slicePub[i] & 0xFF)
+			}
+			bigIntValue := new(big.Int).SetBytes(limbs)
+			bigIntPis[j] = bigIntValue.String()
+			publicInputsConverted[j] = frontend.Variable(bigIntValue)
+		}
+		assignment := &verifier.CircuitFixed{
+			ProofWithPis: proofWithPisVariable,
+			VerifierData: verifierOnlyCircuitData,
+			PublicInputs: publicInputsConverted,
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"inputs": bigIntPis,
+			"proof":  assignment,
+		})
+	}
+}
+
 type ProofRequest struct {
 	ID                  string `json:"id"`
 	ProofWithPis        []byte `json:"proofWithPis"`
@@ -103,12 +166,14 @@ type ProofRequest struct {
 }
 
 func main() {
-	path := "api-build"
-	vk, _ := verifier.LoadGroth16VerifierKey(path)
-	r1cs, pk, _ := verifier.LoadGroth16ProverData(path)
+	//path := "api-build"
+	//vk, _ := verifier.LoadGroth16VerifierKey(path)
+	//r1cs, pk, _ := verifier.LoadGroth16ProverData(path)
 	//gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	gin.SetMode(gin.DebugMode)
 	router.GET("/health", healthCheck)
-	router.POST("/proof", generateProof(r1cs, pk, vk))
+	router.GET("/contract", getContractHandler)
+	//router.POST("/proof", generateProof(r1cs, pk, vk))
 	router.Run("0.0.0.0:8010")
 }
