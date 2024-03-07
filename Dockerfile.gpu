@@ -5,4 +5,33 @@ RUN apt update && apt install -y \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-CMD ["bash"]
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Install Golang
+ENV GOLANG_VERSION 1.21.1
+RUN curl -L https://golang.org/dl/go${GOLANG_VERSION}.linux-amd64.tar.gz | tar -xz -C /usr/local
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the content of the local directory to the working directory
+COPY . .
+
+ENV CGO_LD_FLAGS="-L/root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle/"
+RUN go mod download
+ENV USE_BIT_DECOMPOSITION_RANGE_CHECK=true
+RUN go run main.go compile --dir testdata/test_circuit --system groth16
+
+# Optional:
+# To bind to a TCP port, runtime parameters must be supplied to the docker command.
+# But we can document in the Dockerfile what ports
+# the application is going to listen on by default.
+# https://docs.docker.com/engine/reference/builder/#expose
+
+
+# Run
+ENV USE_BIT_DECOMPOSITION_RANGE_CHECK=true
+
+CMD ["go", "run", "-tags=icicle", "main.go", "prove", "--dir", "testdata/test_circuit", "--system", "groth16"]
