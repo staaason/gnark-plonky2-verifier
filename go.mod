@@ -3,8 +3,8 @@ module github.com/succinctlabs/gnark-plonky2-verifier
 go 1.19
 
 require (
-	github.com/consensys/gnark v0.9.2-0.20240305171350-22d2c33cf8ec
-	github.com/consensys/gnark-crypto v0.12.2-0.20240215234832-d72fcb379d3e
+	github.com/consensys/gnark v0.9.1
+	github.com/consensys/gnark-crypto v0.12.2-0.20231208203441-d4eab6ddd2af
 	github.com/ethereum/go-ethereum v1.13.10
 	github.com/gin-gonic/gin v1.9.1
 	github.com/rs/zerolog v1.30.0
@@ -13,7 +13,6 @@ require (
 
 require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 )
 
@@ -34,8 +33,8 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/pprof v0.0.0-20230817174616-7a8ec2ada47b // indirect
 	github.com/holiman/uint256 v1.2.4 // indirect
-	github.com/ingonyama-zk/icicle v0.0.0-20230928131117-97f0079e5c71 // indirect
-	github.com/ingonyama-zk/iciclegnark v0.1.0 // indirect
+	github.com/ingonyama-zk/icicle v0.1.0 // indirect
+	github.com/ingonyama-zk/iciclegnark v0.1.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/leodido/go-urn v1.3.0 // indirect
@@ -61,5 +60,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
+
+replace github.com/consensys/gnark => github.com/celer-network/gnark v0.0.0-20240103092544-e37f964b1a96
 
 replace github.com/ingonyama-zk/icicle v1.0.0 => github.com/ingonyama-zk/icicle v0.1.0
