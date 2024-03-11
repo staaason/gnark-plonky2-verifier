@@ -63,4 +63,4 @@ require (
 
 replace github.com/consensys/gnark => github.com/celer-network/gnark v0.0.0-20240103092544-e37f964b1a96
 
-replace github.com/ingonyama-zk/icicle v1.0.0 => github.com/ingonyama-zk/icicle v0.1.0
+//replace github.com/ingonyama-zk/icicle v1.0.0 => github.com/ingonyama-zk/icicle v0.1.0

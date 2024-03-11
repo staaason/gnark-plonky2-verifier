@@ -22,14 +22,15 @@ RUN go get github.com/ingonyama-zk/icicle/goicicle@v0.1.0
 ENV CGO_LD_FLAGS="-L/root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle/"
 RUN cd /root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle/ && \
-    make all
+    make TARGET_BN254
 
 
-ENV USE_BIT_DECOMPOSITION_RANGE_CHECK=true
-RUN go run main.go compile --dir testdata/test_circuit --system groth16
+#ENV USE_BIT_DECOMPOSITION_RANGE_CHECK=true
+#RUN go run main.go compile --dir testdata/test_circuit --system groth16
 
 
 # Run
 ENV USE_BIT_DECOMPOSITION_RANGE_CHECK=true
+CMD ["go", "run", "-tags=icicle", "gpu_example.go"]
 
-CMD ["go", "run", "-tags=icicle", "main.go", "prove", "--dir", "testdata/test_circuit", "--system", "groth16"]
+#CMD ["go", "run", "-tags=icicle", "main.go", "prove", "--dir", "testdata/test_circuit", "--system", "groth16"]

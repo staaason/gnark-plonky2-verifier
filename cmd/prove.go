@@ -1,5 +1,10 @@
 package cmd
 
+/*
+#cgo LDFLAGS: -L/root/go/pkg/mod/github.com/ingonyama-zk/icicle@v0.1.0/goicicle/ -lbn254
+*/
+import "C"
+
 import (
 	"bytes"
 	"encoding/json"
@@ -99,7 +104,7 @@ func prove(cmd *cobra.Command, args []string) {
 		start := time.Now()
 		proof, err := groth16.Prove(r1cs, pk, witness, backend.WithIcicleAcceleration())
 		if err != nil {
-			fmt.Println("Error proving:", err)
+			fmt.Printf("error proving: %s\n", err.Error())
 		}
 		elapsed := time.Since(start)
 		log.Info().Msg("Successfully created proof, time: " + elapsed.String())
