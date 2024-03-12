@@ -2,6 +2,9 @@
 
 FROM golang:1.22-alpine
 
+# Install curl
+RUN apk update && apk add --no-cache curl
+
 # Set destination for COPY
 WORKDIR /app
 
